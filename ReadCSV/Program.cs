@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ReadCSV.Entities;
+using System;
 using System.IO;
 
 namespace ReadCSV
@@ -7,57 +8,45 @@ namespace ReadCSV
     {
         static void Main(string[] args)
         {
+            Console.Write("Enter file full path with the name of the file .cvs: ");
+            string sourceFilePath = Console.ReadLine();
 
-            string path = @"D:\Temp\myfolder\products.csv";
-            string outputPath = @"D:\Temp\myfolder\out\summary.csv";
+            string sourceFolderPath = Path.GetDirectoryName(sourceFilePath);
+            string targetFolder = sourceFolderPath + @"\out";
+            string outputPath = targetFolder + @"\summary.csv";
+
             FileInfo file = new FileInfo(outputPath);
 
             try
             {
-                using (StreamReader streamReader = File.OpenText(path))
+                string[] lines = File.ReadAllLines(sourceFilePath);
+
+                using (StreamWriter streamWriter = File.AppendText(outputPath))
                 {
+                    string result = "";
 
-
-                    using (StreamWriter streamWriter = File.AppendText(outputPath))
+                    foreach (var line in lines)
                     {
-                        string result = "";
 
-                        while (!streamReader.EndOfStream)
+                        string[] fields = line.Split(",");
+
+                        string name = fields[0];
+                        double price = double.Parse(fields[1]);
+                        int quantity = int.Parse(fields[2]);
+
+                        Product product = new Product(name, price, quantity);
+
+                        if (file.Length == 0)
                         {
-                            string line = streamReader.ReadLine();
-
-                            string[] price = line.Split(",");
-                            double aux = 0;
-                            double multi = 1;
-
-                            for (int i = 0; i < price.Length - 1; i++)
-                            {
-                                if (aux != null)
-                                {
-                                    aux = double.Parse(price[i + 1]);
-                                    multi = multi * aux;
-                                }
-
-                                result = $"{multi}";
-
-                            }
-
-                            if (file.Length == 0)
-                            {
-                                streamWriter.WriteLine($"{price[0]}, {result}");
-
-                            }
-
-                            else
-                            {
-                                throw new IOException("File already exists");
-                            }
+                            streamWriter.WriteLine($"{product}");
                         }
-                        Console.WriteLine("Done!!!");
-
+                        else
+                        {
+                            throw new IOException("File already exists");
+                        }
                     }
+                    Console.WriteLine("Done!!!");
                 }
-
 
             }
             catch (IOException ex)
